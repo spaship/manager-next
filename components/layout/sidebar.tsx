@@ -63,7 +63,7 @@ const Sidebar: FunctionComponent<SidebarProps> = () => {
       <StackItem isFilled>
         <Nav aria-label="Nav">
           <StyledNavList>
-            <StyledNavItem itemId={0} isActive={path === "/properties"} onClick={()=>{router.push("/properties")}}>
+            <StyledNavItem itemId={0} isActive={path.toString().includes("/property") || path === "/"} onClick={()=>{router.push("/")}}>
               <NavButton><NetworkIcon />Web Properties</NavButton>
             </StyledNavItem>
             <StyledNavItem itemId={1} isActive={path === "/dashboard"} onClick={()=>{router.push("/dashboard")}}>
