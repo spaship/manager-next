@@ -11,7 +11,7 @@ import {
 } from "@patternfly/react-core";
 import styled from 'styled-components';
 
-const ChartStyle = styled.div({
+export const ChartStyle = styled.div({
   height: "250px",
   width: "600px",
   background: "var(---ffffff) 0% 0% no-repeat padding-box",
@@ -19,8 +19,7 @@ const ChartStyle = styled.div({
   opacity: "1;",
 });
 
-
-const DeploymentWeek = () => (
+const DeploymentWeek = ({ webprop }: any) => (
   <>
     <TextContent>
       <Text component={TextVariants.h1}> Deployment/Week </Text>
@@ -44,7 +43,7 @@ const DeploymentWeek = () => (
           legendOrientation="vertical"
           legendPosition="right"
           height={250}
-          maxDomain={{ y: 10 }}
+          maxDomain={{ y: 300 }}
           minDomain={{ y: 0 }}
           padding={{
             bottom: 50,
@@ -54,42 +53,19 @@ const DeploymentWeek = () => (
           }}
           width={600}
         >
-          <ChartAxis tickValues={[2, 3, 4]} />
-          <ChartAxis dependentAxis showGrid tickValues={[2, 5, 8]} />
+          <ChartAxis tickValues={[50, 150, 250]} />
+          <ChartAxis dependentAxis showGrid tickValues={[50, 150, 250]} />
           <ChartGroup>
-            <ChartLine
-              data={[
-                { name: "QA", x: "1st Week", y: 1 },
-                { name: "QA", x: "2nd Week", y: 2 },
-                { name: "QA", x: "3rd Week", y: 5 },
-                { name: "QA", x: "Current Week", y: 3 },
-              ]}
-            />
-            <ChartLine
-              data={[
-                { name: "Dev", x: "1st Week", y: 2 },
-                { name: "Dev", x: "2nd Week", y: 1 },
-                { name: "Dev", x: "3rd Week", y: 7 },
-                { name: "Dev", x: "Current Week", y: 4 },
-              ]}
-              style={{
-                data: {
-                  strokeDasharray: "3,3",
-                },
-              }}
-            />
-            <ChartLine
-              data={[
-                { name: "Prod", x: "1st Week", y: 3 },
-                { name: "Prod", x: "2nd Week", y: 4 },
-                { name: "Prod", x: "3rd Week", y: 9 },
-                { name: "Prod", x: "Current Week", y: 5 },
-              ]}
-            />
+            {webprop.map((data: any) => (  
+              <ChartLine
+                data={data}
+              />
+            ))}
           </ChartGroup>
         </Chart>
       </div>
     </ChartStyle>
   </>
 );
+
 export default DeploymentWeek;

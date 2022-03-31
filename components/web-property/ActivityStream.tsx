@@ -13,34 +13,34 @@ const DivStyle = styled.div({
   opacity: "1;",
 });
 
-const ActivityStream = ({ webprop }) => {
+const ActivityStream = ({ webprop }: any) => {
   return (
     <>
       <TextContent>
         <Text component={TextVariants.h1}>Activity Stream</Text>
       </TextContent><br></br>
       <DivStyle>
-      <div>
-        <br></br>
-        <List>
-          {webprop.map((e) => (
-            <ListItem key={e.id}>
-              <TextContent>
-                <Text component={TextVariants.h5}>
-                  {/* <Link to={getSPALink(e.name, e.name)} style={{ textDecoration: "none" }}>
+        <div>
+          <br></br>
+          <List>
+            {webprop.map((e: any) => (
+              <ListItem key={e.id}>
+                <TextContent>
+                  <Text component={TextVariants.h5}>
+                    {/* <Link to={getSPALink(e.name, e.name)} style={{ textDecoration: "none" }}>
                 <label color="green">{e.name}</Label>
               </Link> */}
-                  <Label color="green">SPA Name : {e.spaName}</Label> &nbsp; &nbsp;
-                  Status : {e.code},
-                  Env : {e.envs},
-                  Branch : {e.branch},
-                  Created At : {e.createdAt}
-                </Text>
-              </TextContent>
-            </ListItem>
-          ))}
-        </List>
-      </div>
+                    <Label color="green">SPA Name : {e.spaName}</Label> &nbsp; &nbsp;
+                    Status : {e.code},
+                    Env : {e.envs},
+                    Branch : {e.branch},
+                    Created At : {e.createdAt}
+                  </Text>
+                </TextContent>
+              </ListItem>
+            ))}
+          </List>
+        </div>
       </DivStyle>
     </>
   );

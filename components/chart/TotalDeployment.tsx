@@ -19,7 +19,7 @@ const ChartStyle = styled.div({
 });
 
 
-const TotalDeployment = ({ webprop }) => (
+const TotalDeployment = ({ webprop}: any ) => (
   <>
     <TextContent>
       <Text component={TextVariants.h1}> Total Deployment </Text>

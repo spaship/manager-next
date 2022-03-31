@@ -7,65 +7,35 @@ import {
   Title
 } from "@patternfly/react-core";
 import { PlusCircleIcon } from "@patternfly/react-icons";
-import axios from "axios";
 import { useRouter } from "next/router";
 import WebProperty from "../components/web-property/WebProperty";
+import { get, post } from "../utils/APIUtil";
+import styled from 'styled-components';
 
-
-export const getStaticProps = async (props) => {
-  const host = process.env.HOST;
-  const url = `${host}/webproperty/list`;
-  const token: any = process.env.AUTHENTICATION_TOKEN;
-
-  const res = await axios({
-    method: "get",
-    url: url,
-    headers: {
-      Authorization: token,
-      rejectUnauthorized: false,
-    },
-  });
-  const data = await res.data.data;
-
-  const urlCount = `${host}/event/fetch/analytics/all`;
-  const resCount = await axios({
-    method: "post",
-    url: urlCount,
-    headers: {
-      Authorization: token,
-      rejectUnauthorized: false,
-    },
-    data: {
-      "count": {
-        "all": true
-      }
-    }
-  });
-  const deploymentCountData = resCount.data.data;
-
-  for (let i in data) {
-    let obj = deploymentCountData.find(o => o.propertyName === data[i].webPropertyName);
-    data[i].count = obj?.count || 0;
+export const payload = {
+  "count": {
+    "all": true
   }
+};
+
+export const getStaticProps = async () => {
+  const host = getHost();
+  const urlList = `${host}/webproperty/list`;
+  const urlCount = `${host}/event/fetch/analytics/all`;
+  const response = await Promise.all([await get<any>(urlList), await post<any>(urlCount, payload)]);
+  const [propertyListResponse, deploymentCountResponse]: any = response;
+  getPropertyListResponse(propertyListResponse, deploymentCountResponse);
   return {
-    props: { webprop: data },
+    props: { webprop: propertyListResponse },
   };
 };
 
-export const DividerComp = () => (
-  <Divider
-    style={{
-      border: "1px solid #D2D2D2;",
-      opacity: 1,
-    }}
-  />
-);
+export const DividerComp = styled.footer `
+  border-top: 1px solid var(--spaship-global--Color--bright-gray);
+  width: 60vw;
+`;
 
-
-export const onClick = () => {
-};
-
-const Home = ({ webprop }) => {
+const HomePage = ({ webprop }: any) => {
   const router = useRouter();
   return (
     <>
@@ -101,6 +71,16 @@ const Home = ({ webprop }) => {
   );
 };
 
+HomePage.authenticationEnabled = true;
+export default HomePage;
 
-Home.authenticationEnabled = true;
-export default Home;
+function getHost() {
+  return process.env.HOST;
+}
+
+function getPropertyListResponse(propertyListResponse: any, deploymentCountResponse: any) {
+  for (let i in propertyListResponse) {
+    let obj = deploymentCountResponse.find((o: any) => o.propertyName === propertyListResponse[i].webPropertyName);
+    propertyListResponse[i].count = obj?.count || 0;
+  }
+}

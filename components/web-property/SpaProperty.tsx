@@ -20,14 +20,14 @@ const CardStyle = styled(Card)({
 });
 
 
-const SpaProperty = ({ webprop }) => {
+const SpaProperty = ({ webprop }: any )  => {
   const router = useRouter();
   return (
     <>
       <PageSection isFilled>
         <br></br>
         <Gallery hasGutter>
-          {webprop.map((prop) => (
+          {webprop.map((prop : any ) => (
               <Card
                 isSelectable
                 // selectableVariant="raised"

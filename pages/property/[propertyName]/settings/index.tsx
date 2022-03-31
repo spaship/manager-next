@@ -5,77 +5,44 @@ import React from "react";
 import ApiKey from "../../../../components/settings/ApiKey";
 import DeleteSpa from "../../../../components/settings/DeleteSpa";
 import ManageSpa from "../../../../components/settings/ManageSpa";
-import axios from "axios";
+import { get, post } from "../../../../utils/APIUtil";
+
+export interface DataPoint {
+    count?: any;
+    spaName: any;
+    envs: any;
+    contextPath: any;
+    propertyName: any;
+    createdAt: any;
+}
 
 export const getStaticPaths = async () => {
-    const host = process.env.HOST;
+    const host = getHost();
     const url = `${host}/webproperty/list`;
-    const token: any = process.env.AUTHENTICATION_TOKEN;
-    const res = await axios({
-        method: "get",
-        url: url,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: false,
-        },
-    });
-    const paths = res.data.data.map((property) => ({
+    const propertyListResponse = await get<any>(url);
+    const paths = propertyListResponse.map((property: any) => ({
         params: { propertyName: property.webPropertyName },
     }))
     return { paths, fallback: false }
 }
 
-
-export const getStaticProps = async (context) => {
-    const propertyReq = context.params.propertyName;
-    const host = process.env.HOST;
-    const url = `${host}/webproperty/getspalist/${propertyReq}`;
-    const token: any = process.env.AUTHENTICATION_TOKEN;
-
-    const res = await axios({
-        method: "get",
-        url: url,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: false,
-        },
-    });
-    const response = [];
+export const getStaticProps = async (context : any) => {
+    const propertyReq = getPropertyRequest(context);
+    const host = getHost();
+    const urlList = `${host}/webproperty/getspalist/${propertyReq}`;
+    const response = await get<any>(urlList);
+    let listResponse : DataPoint[] = [];
     const checkSpa = new Set();
-    if (res) {
-        const data = await res.data.data;
-        for (let item of data) {
-            let spas = item?.spa;
-            for (let eachSpa of spas) {
-                if (eachSpa?.spaName && !checkSpa.has(eachSpa.spaName.trim().replace(/^\/|\/$/g, ''))) {
-                    checkSpa.add(eachSpa.spaName.trim().replace(/^\/|\/$/g, ''));
-                    response.push({
-                        spaName: eachSpa.spaName.trim().replace(/^\/|\/$/g, ''),
-                        envs: eachSpa.envs,
-                        contextPath: eachSpa.contextPath,
-                        propertyName: item.webPropertyName,
-                        createdAt: item.createdAt
-                    });
-                }
-            }
-        }
+    if (response) {
+        const data = await response;
+        listResponse = processProperties(data, checkSpa, listResponse);
     }
-
     return {
-        props: { webprop: response },
+        props: { webprop: listResponse },
     };
 };
 
-export const UsingHr = () => (
-    <Divider
-        style={{
-            border: "1px solid #D2D2D2;",
-            opacity: 1,
-        }}
-    />
-);
-
-const Settings = ({ webprop }) => {
+const SettingsPage = ({ webprop } : any) => {
     return (
         <>
             <ManageSpa webprop={webprop}></ManageSpa>
@@ -87,4 +54,38 @@ const Settings = ({ webprop }) => {
     );
 };
 
-export default Settings;
+export default SettingsPage;
+
+function getHost() {
+    return process.env.HOST;
+}
+
+function getPropertyRequest(context: any) {
+    return context.params.propertyName;
+}
+
+function getSpaName(eachSpa: any): string {
+    return eachSpa?.spaName.trim().replace(/^\/|\/$/g, '') || null;
+}
+
+function processProperties(data: any, checkSpa: Set<any>, response: any[]) {
+    for (let item of data) {
+        let spas = item?.spa;
+        for (let eachSpa of spas) {
+            const reqSpaName = getSpaName(eachSpa);
+            if (eachSpa?.spaName && !checkSpa.has(reqSpaName)) {
+                checkSpa.add(reqSpaName);
+                response.push({
+                    spaName: reqSpaName,
+                    envs: eachSpa.envs,
+                    contextPath: eachSpa.contextPath,
+                    propertyName: item.webPropertyName,
+                    createdAt: item.createdAt
+                });
+            }
+        }
+    }
+    return response;
+}
+
+

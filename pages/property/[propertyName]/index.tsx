@@ -1,128 +1,113 @@
 import {
-    Divider, PageSection,
+    Divider, PageSection
 } from "@patternfly/react-core";
 import React from "react";
 import ActivityStream from "../../../components/web-property/ActivityStream";
 import SpaProperty from "../../../components/web-property/SpaProperty";
-import { useRouter } from 'next/router'
-import axios from "axios";
+import { get, post } from "../../../utils/APIUtil";
+import styled from 'styled-components';
 
-export const UsingHr = () => (
-    <Divider
-        style={{
-            border: "1px solid #D2D2D2;",
-            opacity: 1,
-        }}
-    />
-);
+export const DividerComp = styled.footer`
+  border-top: 1px solid var(--spaship-global--Color--bright-gray);
+  width: 60vw;
+`;
+export interface DataPoint {
+    count?: any;
+    spaName: any;
+    envs: any;
+    contextPath: any;
+    propertyName: any;
+    createdAt: any;
+}
 
 export const getStaticPaths = async () => {
-    const host = process.env.HOST;
+    const host = getHost();
     const url = `${host}/webproperty/list`;
-    const token: any = process.env.AUTHENTICATION_TOKEN;
-    const res = await axios({
-        method: "get",
-        url: url,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: false,
-        },
-    });
-    const paths = res.data.data.map((property) => ({
+    const propertyListResponse = await get<any>(url);
+    const paths = propertyListResponse.map((property: any) => ({
         params: { propertyName: property.webPropertyName },
     }))
     return { paths, fallback: false }
 }
 
-
-export const getStaticProps = async (context) => {
-    const propertyReq = context.params.propertyName;
-    const host = process.env.HOST;
-    const token: any = process.env.AUTHENTICATION_TOKEN;
-    const url = `${host}/webproperty/getspalist/${propertyReq}`;
-    const res = await axios({
-        method: "get",
-        url: url,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: true,
-        },
-    });
-    const response = [];
+export const getStaticProps = async (context: any) => {
+    const propertyReq = getPropertyRequest(context);
+    const host = getHost();
+    const urlList = `${host}/webproperty/getspalist/${propertyReq}`;
+    const urlEvent = `${host}/event/fetch/analytics/filter`;
+    const payloadActivites = {
+        "activities": {
+            "propertyName": propertyReq
+        }
+    };
+    const payloadCount = {
+        "count": {
+            "propertyName": propertyReq
+        }
+    };
+    const response = await Promise.all([await get<any>(urlList), await post<any>(urlEvent, payloadActivites), await post<any>(urlEvent, payloadCount)]);
+    const [listResponse, activitesResponse, countResponse]: any = response;
+    let processedListResponse: DataPoint[] = [];
     const checkSpa = new Set();
-    if (res) {
-        const data = await res.data.data;
-        for (let item of data) {
-            let spas = item?.spa;
-            for (let eachSpa of spas) {
-                if (eachSpa?.spaName && !checkSpa.has(eachSpa.spaName.trim().replace(/^\/|\/$/g, ''))) {
-                    checkSpa.add(eachSpa.spaName.trim().replace(/^\/|\/$/g, ''));
-                    response.push({
-                        spaName: eachSpa.spaName.trim().replace(/^\/|\/$/g, ''),
-                        envs: eachSpa.envs,
-                        contextPath: eachSpa.contextPath,
-                        propertyName: item.webPropertyName,
-                        createdAt: item.createdAt
-                    });
-                }
-            }
-        }
+    if (listResponse) {
+        const data = await listResponse;
+        processedListResponse = processProperties(data, checkSpa, processedListResponse);
     }
-    const data = await response;
-
-    const urlActivites = `${host}/event/fetch/analytics/filter`;
-    const resActivites = await axios({
-        method: "post",
-        url: urlActivites,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: true,
-        },
-        data: {
-            "activities": {
-                "propertyName": propertyReq
-            }
-        }
-    });
-
-
-    const urlCount = `${host}/event/fetch/analytics/filter`;
-    const resCount = await axios({
-        method: "post",
-        url: urlCount,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: true,
-        },
-        data: {
-            "count": {
-                "propertyName": "one.redhat.com"
-            }
-        }
-    });
-    const deploymentCountData = resCount.data.data;
-
-    for (let i in data) {
-        let obj = deploymentCountData.find(o => o.spaName === data[i].spaName);
-        data[i].count = obj?.count || 0;
+    for (let i in processedListResponse) {
+        let obj = countResponse.find((o: any) => o.spaName === processedListResponse[i].spaName);
+        processedListResponse[i].count = obj?.count || 0;
     }
-
     return {
-        props: { webprop: data, activites: resActivites.data.data },
+        props: { webprop: processedListResponse, activites: activitesResponse },
     };
 };
 
-const WebPropertyComponent = ({ webprop, activites }) => {
-
+const WebPropertyPage = ({ webprop, activites }: any) => {
     return (
         <>
+
             <PageSection isFilled>
                 <SpaProperty webprop={webprop}></SpaProperty>
-                <br></br>
+                <br />
+                <DividerComp />
+                <br />
                 <ActivityStream webprop={activites}></ActivityStream>
+                <br />
             </PageSection>
         </>
     );
 };
 
-export default WebPropertyComponent;
+export default WebPropertyPage;
+
+function getHost() {
+    return process.env.HOST;
+}
+
+function getPropertyRequest(context: any) {
+    return context.params.propertyName;
+}
+
+function getSpaName(eachSpa: any): string {
+    return eachSpa?.spaName.trim().replace(/^\/|\/$/g, '') || null;
+}
+
+function processProperties(data: any, checkSpa: Set<any>, response: any[]) {
+    for (let item of data) {
+        let spas = item?.spa;
+        for (let eachSpa of spas) {
+            const reqSpaName = getSpaName(eachSpa);
+            if (eachSpa?.spaName && !checkSpa.has(reqSpaName)) {
+                checkSpa.add(reqSpaName);
+                response.push({
+                    spaName: reqSpaName,
+                    envs: eachSpa.envs,
+                    contextPath: eachSpa.contextPath,
+                    propertyName: item.webPropertyName,
+                    createdAt: item.createdAt
+                });
+            }
+        }
+    }
+    return response;
+}

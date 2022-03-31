@@ -5,112 +5,84 @@ import React from "react";
 import DeploymentWeek from "../../../../components/chart/DeploymentWeek";
 import TotalDeployment from "../../../../components/chart/TotalDeployment";
 import ActivityStream from "../../../../components/web-property/ActivityStream";
-import axios from "axios";
+import { post } from "../../../../utils/APIUtil";
+import styled from 'styled-components';
+
+export const DividerComp = styled.footer`
+  border-top: 1px solid var(--spaship-global--Color--bright-gray);
+  width: 60vw;
+`;
 
 export const getStaticPaths = async () => {
-    const host = process.env.HOST;
+    const host = getHost();
     const url = `${host}/event/fetch/analytics/all`;
-    const token: any = process.env.AUTHENTICATION_TOKEN;
-    const res = await axios({
-        method: "post",
-        url: url,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: false,
-        },
-        data:
-        {
-            "count": {
-                "spa": true
-            }
+    const payload = {
+        "count": {
+            "spa": true
         }
-    });
-    const paths = res.data.data.map((property: any) => ({
-        params: { propertyName: property?.propertyName || '', spaName: property?.spaName || ''},
+    }
+    const response = await post<any>(url, payload);
+    const paths = response.map((property: any) => ({
+        params: { propertyName: property?.propertyName || 'NA', spaName: property?.spaName || '' },
     }))
-
-
-
     return { paths, fallback: false }
 }
 
-
-export const UsingHr = () => (
-    <Divider
-        style={{
-            border: "1px solid #D2D2D2;",
-            opacity: 1,
-        }}
-    />
-);
-
-
-
-export const getStaticProps = async (context) => {
-    const propertyReq = context.params.propertyName;
-    const spaReq = context.params.spaName;
-    const host = process.env.HOST;
-    const token: any = process.env.AUTHENTICATION_TOKEN;
+export const getStaticProps = async (context: any) => {
+    const propertyReq = getPropertyReq(context);
+    const spaReq = getSpaReq(context);
+    const host = getHost();
     const url = `${host}/event/fetch/analytics/filter`;
-    const resActivites = await axios({
-        method: "post",
-        url: url,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: false,
-        },
-        data: {
-            "activities": {
-                "propertyName": propertyReq,
-                "spaName": spaReq,
-            }
+    const payloadActivites = {
+        "activities": {
+            "propertyName": propertyReq,
+            "spaName": spaReq,
         }
-    });
-
-
-
-    const resTotalDeployments = await axios({
-        method: "post",
-        url: url,
-        headers: {
-            Authorization: token,
-            rejectUnauthorized: false,
-        },
-        data: {
-            "count": {
-                "propertyName": propertyReq,
-                "spaName": spaReq,
-            }
+    };
+    const payloadTotalDeploymenets = {
+        "count": {
+            "propertyName": propertyReq,
+            "spaName": spaReq,
         }
-    });
-    const chartData = [];
-    const labelData = [];
+    };
+    const payloadMonthlyDeploymenets = {
+        "chart": {
+            "month": true,
+            "propertyName": propertyReq,
+            "spaName": spaReq,
+        }
+    };
+    const response = await Promise.all([await post<any>(url, payloadActivites), await post<any>(url, payloadTotalDeploymenets), await post<any>(url, payloadMonthlyDeploymenets)]);
+    const [activitesResponse, totalDeploymentsResponse, monthlyDeploymentResponse]: any = response;
+
+    let chartData: any[] = [];
+    let labelData: any[] = [];
     let count = 0;
-    count = 0;
-    if (resTotalDeployments) {
-        for (let item of resTotalDeployments.data.data) {
-            const value = JSON.parse(JSON.stringify(item));
-            count += value.count;
-            const dataPoint = {
-                x: value.env,
-                y: value.count
-            }
-            chartData.push(dataPoint);
-            const label = {
-                name: value.env + " : " + value.count
-            }
-            labelData.push(label);
+    if (totalDeploymentsResponse) {
+        for (let item of totalDeploymentsResponse) {
+            count = processTotalDeployments(item, count, chartData, labelData);
         }
     }
 
+    const processedMonthlyDeployments = [];
+    for (const item in monthlyDeploymentResponse) {
+        const data = monthlyDeploymentResponse[item];
+        const temp = [];
+        let i = 1;
+        for (const prop of data) {
+            temp.push({ name: prop.envs, x: `week ${i++}`, y: prop.count })
+        }
+        processedMonthlyDeployments.push(temp);
+    }
+
     return {
-        props: { activites: resActivites.data.data, totalDeployments: { chartData: chartData, labelData: labelData, count: count } },
+        props: { activites: activitesResponse, totalDeployments: { chartData: chartData, labelData: labelData, count: count }, monthlyDeployments: processedMonthlyDeployments },
     };
 };
 
 
 
-const TestComponent = ({ activites, totalDeployments }) => {
+const SpaNamePage = ({ activites, totalDeployments, monthlyDeployments }: any) => {
     return (
         <>
             <Gallery hasGutter
@@ -120,14 +92,46 @@ const TestComponent = ({ activites, totalDeployments }) => {
                     '2xl': '400px'
                 }} >
                 <GalleryItem ><TotalDeployment webprop={totalDeployments}></TotalDeployment> </GalleryItem>
-                <GalleryItem > <DeploymentWeek></DeploymentWeek> </GalleryItem>
+                <GalleryItem > <DeploymentWeek webprop={monthlyDeployments}></DeploymentWeek> </GalleryItem>
             </Gallery>
+            <br />
+            <DividerComp />
+            <br />
             <PageSection isFilled>
-                <br></br>
+
                 <ActivityStream webprop={activites}></ActivityStream>
             </PageSection>
+            <br />
         </>
     );
 };
 
-export default TestComponent;
+export default SpaNamePage;
+
+function getHost() {
+    return process.env.HOST;
+}
+
+function getSpaReq(context: any) {
+    return context.params.spaName;
+}
+
+function getPropertyReq(context: any) {
+    return context.params.propertyName;
+}
+
+function processTotalDeployments(item: any, count: number, chartData: any[], labelData: any[]) {
+    const value = JSON.parse(JSON.stringify(item));
+    count += value.count;
+    const dataPoint = {
+        x: value.env,
+        y: value.count
+    };
+    chartData.push(dataPoint);
+    const label = {
+        name: value.env + " : " + value.count
+    };
+    labelData.push(label);
+    return count;
+}
+

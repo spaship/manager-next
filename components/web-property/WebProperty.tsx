@@ -14,22 +14,22 @@ const CardStyle = styled(Card)({
   height: "199px;",
 });
 
-const WebProperty = ({ webprop }) => {
+const WebProperty = ({ webprop }: any) => {
   const router = useRouter();
   return (
     <>
       <PageSection isFilled>
         <br></br>
         <Gallery hasGutter>
-          {webprop.map((prop) => (
-              <Card
-                isSelectable
-                // selectableVariant="raised"
-                isCompact
-                key={prop.id}
-                isRounded
-                onClick={() => router.push(`property/${prop.webPropertyName}`)}
-              >
+          {webprop.map((prop: any) => (
+            <Card
+              isSelectable
+              // selectableVariant="raised"
+              isCompact
+              key={prop.id}
+              isRounded
+              onClick={() => router.push(`property/${prop.webPropertyName}`)}
+            >
               <CardStyle>
                 {/* <CardHeader>
                   <CardActions></CardActions>
@@ -37,8 +37,8 @@ const WebProperty = ({ webprop }) => {
                 <CardTitle>{prop.webPropertyName}</CardTitle>
                 <CardBody>Deployed</CardBody>
                 <CardFooter>{prop.count} Deployments</CardFooter>
-            </CardStyle>
-              </Card>
+              </CardStyle>
+            </Card>
           ))}
         </Gallery>
       </PageSection>

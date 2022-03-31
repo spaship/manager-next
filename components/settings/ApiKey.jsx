@@ -116,7 +116,7 @@ const ApiKey = () => {
                   <FormGroup
                     label="Enter environment name"
                     labelIcon={
-                      <Popover>
+                      <Popover >
                         <button
                           type="button"
                           aria-label="More info for name field"
