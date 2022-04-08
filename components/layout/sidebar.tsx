@@ -1,4 +1,4 @@
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { Brand, Nav, NavItem, NavList, Stack, StackItem } from "@patternfly/react-core";
