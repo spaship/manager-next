@@ -1,13 +1,13 @@
 :root {
-  --spaship-global--Color--spaship-gray: #333333;
-  --spaship-global--Color--bright-gray: #EAEAEA;
-  --spaship-global--Color--sonic-silver: #72767B;
-  --spaship-global--Color--solar-orange: #FDB716;
-  --spaship-global--Color--amarillo-flare: #FED402;
-  --spaship-global--Color--munsell-yellow: #F1C904;
+  --spaship-global--Color--bright-gray: #eaeaea;
+  --spaship-global--Color--sonic-silver: #72767b;
+  --spaship-global--Color--solar-orange: #fdb716;
+  --spaship-global--Color--amarillo-flare: #fed402;
+  --spaship-global--Color--munsell-yellow: #f1c904;
   --spaship-global--Color--text-black: #151515;
-  --spaship-global--Color--ui-blue: #0066CC;
-  --spaship-global--Font-Family: RedHatDisplay, Overpass, Roboto, Cantarell, helvetica, arial, sans-serif;
+  --spaship-global--Color--ui-blue: #0066cc;
+  --spaship-global--Font-Family: RedHatDisplay, Overpass, Roboto, Cantarell,
+    helvetica, arial, sans-serif;
 }
 
 .spaship-gray {
@@ -42,7 +42,7 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family:  var(--spaship-global--Font-Family);
+  font-family: var(--spaship-global--Font-Family);
 }
 
 a {
@@ -51,23 +51,71 @@ a {
 }
 
 button.spaship_btn {
-  --pf-c-button--m-primary--BackgroundColor: var(--spaship-global--Color--amarillo-flare);
-  --pf-c-button--m-primary--Color: var(--spaship-global--Color--text-black) !important;
+  --pf-c-button--m-primary--BackgroundColor: var(
+    --spaship-global--Color--amarillo-flare
+  );
+  --pf-c-button--m-primary--Color: var(
+    --spaship-global--Color--text-black
+  ) !important;
   outline: none;
 }
 
 .spaship_btn:hover {
-  --pf-c-button--m-primary--hover--BackgroundColor: var(--spaship-global--Color--solar-orange) !important;
+  --pf-c-button--m-primary--hover--BackgroundColor: var(
+    --spaship-global--Color--solar-orange
+  ) !important;
 }
 
 .spaship_btn:focus {
-  --pf-c-button--m-primary--focus--BackgroundColor: var(--spaship-global--Color--solar-orange) !important;
+  --pf-c-button--m-primary--focus--BackgroundColor: var(
+    --spaship-global--Color--solar-orange
+  ) !important;
 }
 
 .spaship_btn:active {
-  --pf-c-button--m-primary--active--BackgroundColor: var(--spaship-global--Color--munsell-yellow) !important;
+  --pf-c-button--m-primary--active--BackgroundColor: var(
+    --spaship-global--Color--munsell-yellow
+  ) !important;
 }
 
 * {
   box-sizing: border-box;
+}
+
+.page_section {
+  padding: 1vw 10vw;
+  width: 60vw;
+}
+
+.spaship-circle {
+  -webkit-border-radius: 999px;
+  -moz-border-radius: 999px;
+  border-radius: 999px;
+  width: 70px;
+  height: 70px;
+  margin-top: 25px;
+  margin-left: 25px;
+  background: hsl(42, 98%, 54%);
+  color: black;
+  text-align: center;
+  -webkit-transition: background 0.2s linear;
+  -moz-transition: background 0.2s linear;
+  -ms-transition: background 0.2s linear;
+  -o-transition: background 0.2s linear;
+  transition: background 0.2s linear;
+  transition: color 0.2s linear;
+  font: 70px arial, sans-serif;
+}
+
+.spaship-circle:hover {
+  background: #333333;
+  cursor: pointer;
+}
+
+.spaship-plus {
+  line-height: 1.1em;
+}
+
+.spaship-plus:hover {
+  color: white;
 }
